@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -39,7 +40,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
 .page-header p{color:var(--text-muted);font-size:13px;margin-top:4px}
 .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px;margin-bottom:28px}
 .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;position:relative;overflow:hidden;transition:border-color .2s}
-.stat-card:hover{border-color:var(--border-active)}
+.stat-card:hover{border-color:var(--border-active);transform:translateY(-2px);transition:all .2s}
 .stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
 .stat-card.c1::before{background:#3b82f6}.stat-card.c2::before{background:#8b5cf6}.stat-card.c3::before{background:#f59e0b}.stat-card.c4::before{background:#10b981}.stat-card.c5::before{background:var(--accent4)}
 .stat-label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);font-family:'DM Mono',monospace;margin-bottom:6px}
@@ -194,11 +195,11 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
 <div class="tab-panel active" id="tab-overview">
   <div class="page-header"><h1>Search <em>Overview</em></h1><p>Four-role design search · Sesame AI · Series B · Partner: Brady Green / Voyager Talent</p></div>
   <div class="stats-row">
-    <div class="stat-card c1"><div class="stat-label">Sourced</div><div class="stat-value" id="sS" style="color:#60a5fa">0</div><div class="stat-sub">identified</div></div>
-    <div class="stat-card c2"><div class="stat-label">Contacted</div><div class="stat-value" id="sCo" style="color:#a78bfa">0</div><div class="stat-sub">outreach sent</div></div>
-    <div class="stat-card c3"><div class="stat-label">Interviewing</div><div class="stat-value" id="sI" style="color:#fbbf24">0</div><div class="stat-sub">active</div></div>
-    <div class="stat-card c4"><div class="stat-label">Offers</div><div class="stat-value" id="sO" style="color:#34d399">0</div><div class="stat-sub">extended</div></div>
-    <div class="stat-card c5"><div class="stat-label">Total Pipeline</div><div class="stat-value" id="sT" style="color:var(--text)">0</div><div class="stat-sub">all candidates</div></div>
+    <div class="stat-card c1" onclick="goToFilter('sourced')" style="cursor:pointer" title="View sourced candidates"><div class="stat-label">Sourced</div><div class="stat-value" id="sS" style="color:#60a5fa">0</div><div class="stat-sub">identified ↗</div></div>
+    <div class="stat-card c2" onclick="goToFilter('contacted')" style="cursor:pointer" title="View contacted candidates"><div class="stat-label">Contacted</div><div class="stat-value" id="sCo" style="color:#a78bfa">0</div><div class="stat-sub">outreach sent ↗</div></div>
+    <div class="stat-card c3" onclick="goToFilter('interviewing')" style="cursor:pointer" title="View interviewing candidates"><div class="stat-label">Interviewing</div><div class="stat-value" id="sI" style="color:#fbbf24">0</div><div class="stat-sub">active ↗</div></div>
+    <div class="stat-card c4" onclick="goToFilter('offer')" style="cursor:pointer" title="View candidates with offers"><div class="stat-label">Offers</div><div class="stat-value" id="sO" style="color:#34d399">0</div><div class="stat-sub">extended ↗</div></div>
+    <div class="stat-card c5" onclick="goToFilter('all')" style="cursor:pointer" title="View all candidates"><div class="stat-label">Total Pipeline</div><div class="stat-value" id="sT" style="color:var(--text)">0</div><div class="stat-sub">all candidates ↗</div></div>
   </div>
   <div class="overview-grid">
     <div>
@@ -312,7 +313,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
     <div class="form-row"><div class="form-group"><label class="form-label">Current Company</label><input class="form-input" id="c-co" placeholder="Meta Reality Labs"></div><div class="form-group"><label class="form-label">Current Title</label><input class="form-input" id="c-ti" placeholder="Senior UX Designer"></div></div>
     <div class="form-row"><div class="form-group"><label class="form-label">Target Role *</label><select class="form-select" id="c-ro"><option value="">Select...</option><option value="lead">Lead Designer</option><option value="voice">Voice UX Designer</option><option value="hardware">Hardware &amp; Wearables</option><option value="platform">Platform &amp; Dev Tools</option></select></div><div class="form-group"><label class="form-label">Status *</label><select class="form-select" id="c-st"><option value="sourced">Sourced</option><option value="contacted">Contacted</option><option value="interviewing">Interviewing</option><option value="offer">Offer Extended</option><option value="declined">Declined</option><option value="hold">On Hold</option></select></div></div>
     <div class="form-row"><div class="form-group"><label class="form-label">Priority</label><select class="form-select" id="c-pr"><option value="high">🔴 High</option><option value="med" selected>🟡 Medium</option><option value="low">⚫ Low</option></select></div><div class="form-group"><label class="form-label">LinkedIn URL</label><input class="form-input" id="c-li" placeholder="linkedin.com/in/..."></div></div>
-    <div class="form-group"><label class="form-label">Last Action Taken</label><input class="form-input" id="c-ac" placeholder="e.g. Sent initial outreach email"></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">Email</label><input class="form-input" id="c-em" placeholder="name@company.com" type="email"></div><div class="form-group"><label class="form-label">Last Action Taken</label><input class="form-input" id="c-ac" placeholder="e.g. Sent initial outreach email"></div></div>
     <div class="form-group"><label class="form-label">Notes</label><textarea class="form-textarea" id="c-no" placeholder="Dual-fit, context, observations..."></textarea></div>
     <div class="modal-footer"><button class="btn-secondary" onclick="closeModal('candidate')">Cancel</button><button class="btn-primary" onclick="saveCandidate()">Add to Pipeline</button></div>
   </div>
@@ -361,7 +362,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
     <div class="form-row"><div class="form-group"><label class="form-label">Current Company</label><input class="form-input" id="e-co"></div><div class="form-group"><label class="form-label">Current Title</label><input class="form-input" id="e-ti"></div></div>
     <div class="form-row"><div class="form-group"><label class="form-label">Target Role</label><select class="form-select" id="e-ro"><option value="lead">Lead Designer</option><option value="voice">Voice UX Designer</option><option value="hardware">Hardware &amp; Wearables</option><option value="platform">Platform &amp; Dev Tools</option></select></div><div class="form-group"><label class="form-label">Status</label><select class="form-select" id="e-st"><option value="sourced">Sourced</option><option value="contacted">Contacted</option><option value="interviewing">Interviewing</option><option value="offer">Offer Extended</option><option value="declined">Declined</option><option value="hold">On Hold</option></select></div></div>
     <div class="form-row"><div class="form-group"><label class="form-label">Priority</label><select class="form-select" id="e-pr"><option value="high">🔴 High</option><option value="med">🟡 Medium</option><option value="low">⚫ Low</option></select></div><div class="form-group"><label class="form-label">LinkedIn URL</label><input class="form-input" id="e-li"></div></div>
-    <div class="form-group"><label class="form-label">Last Action Taken</label><input class="form-input" id="e-ac"></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">Email</label><input class="form-input" id="e-em" placeholder="name@company.com" type="email"></div><div class="form-group"><label class="form-label">Last Action Taken</label><input class="form-input" id="e-ac"></div></div>
     <div class="form-group"><label class="form-label">Notes</label><textarea class="form-textarea" id="e-no"></textarea></div>
     <div class="modal-footer">
       <button class="btn-secondary" onclick="deleteCandidate()" style="color:var(--accent4);border-color:rgba(251,113,133,.3);margin-right:auto">Delete</button>
@@ -453,6 +454,15 @@ function today(){return new Date().toLocaleDateString('en-US',{month:'short',day
 function nowt(){return new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}
 
 // ═══ NAV ══════════════════════════════════════════════════════════════════════
+function goToFilter(status){
+  switchTab('candidates');
+  S.cf=status;
+  document.querySelectorAll('#cFilters .filter-pill').forEach(p=>p.classList.remove('active'));
+  const pills=document.querySelectorAll('#cFilters .filter-pill');
+  pills.forEach(p=>{if(p.getAttribute('onclick')&&p.getAttribute('onclick').includes("'"+status+"'"))p.classList.add('active');});
+  renderCandidates();
+}
+
 function switchTab(t){
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
@@ -493,6 +503,7 @@ function openEdit(id){
   document.getElementById('e-st').value=c.st||'sourced';
   document.getElementById('e-pr').value=c.pr||'med';
   document.getElementById('e-li').value=c.li||'';
+  document.getElementById('e-em').value=c.em||'';
   document.getElementById('e-ac').value=c.ac||'';
   document.getElementById('e-no').value=c.no||'';
   openModal('edit');
@@ -511,6 +522,7 @@ function updateCandidate(){
     st:document.getElementById('e-st').value,
     pr:document.getElementById('e-pr').value,
     li:document.getElementById('e-li').value.trim(),
+    em:document.getElementById('e-em').value.trim(),
     ac:document.getElementById('e-ac').value.trim(),
     no:document.getElementById('e-no').value.trim(),
   };
@@ -534,7 +546,7 @@ function saveCandidate(){
   const fn=document.getElementById('c-fn').value.trim(),ln=document.getElementById('c-ln').value.trim();
   if(!fn||!ln){alert('First and last name required.');return;}
   const ro=document.getElementById('c-ro').value;if(!ro){alert('Select a role.');return;}
-  S.candidates.push({id:uid(),fn,ln,co:document.getElementById('c-co').value.trim(),ti:document.getElementById('c-ti').value.trim(),ro,st:document.getElementById('c-st').value,pr:document.getElementById('c-pr').value,li:document.getElementById('c-li').value.trim(),ac:document.getElementById('c-ac').value.trim(),no:document.getElementById('c-no').value.trim(),dt:today()});
+  S.candidates.push({id:uid(),fn,ln,co:document.getElementById('c-co').value.trim(),ti:document.getElementById('c-ti').value.trim(),ro,st:document.getElementById('c-st').value,pr:document.getElementById('c-pr').value,li:document.getElementById('c-li').value.trim(),em:document.getElementById('c-em').value.trim(),ac:document.getElementById('c-ac').value.trim(),no:document.getElementById('c-no').value.trim(),dt:today()});
   addAct(`Added candidate: ${fn} ${ln}`,'#6ee7b7');save();closeModal('candidate');clearF('c-');renderCandidates();updateStats();updateSidebar();
 }
 
