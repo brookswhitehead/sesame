@@ -351,6 +351,26 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
   </div>
 </div>
 
+<!-- EDIT CANDIDATE MODAL -->
+<div class="modal-overlay hidden" id="modal-edit">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('edit')">✕</button>
+    <div class="modal-title">Edit Candidate</div><div class="modal-sub">Update status, notes, or any details</div>
+    <input type="hidden" id="e-id">
+    <div class="form-row"><div class="form-group"><label class="form-label">First Name</label><input class="form-input" id="e-fn"></div><div class="form-group"><label class="form-label">Last Name</label><input class="form-input" id="e-ln"></div></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">Current Company</label><input class="form-input" id="e-co"></div><div class="form-group"><label class="form-label">Current Title</label><input class="form-input" id="e-ti"></div></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">Target Role</label><select class="form-select" id="e-ro"><option value="lead">Lead Designer</option><option value="voice">Voice UX Designer</option><option value="hardware">Hardware &amp; Wearables</option><option value="platform">Platform &amp; Dev Tools</option></select></div><div class="form-group"><label class="form-label">Status</label><select class="form-select" id="e-st"><option value="sourced">Sourced</option><option value="contacted">Contacted</option><option value="interviewing">Interviewing</option><option value="offer">Offer Extended</option><option value="declined">Declined</option><option value="hold">On Hold</option></select></div></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">Priority</label><select class="form-select" id="e-pr"><option value="high">🔴 High</option><option value="med">🟡 Medium</option><option value="low">⚫ Low</option></select></div><div class="form-group"><label class="form-label">LinkedIn URL</label><input class="form-input" id="e-li"></div></div>
+    <div class="form-group"><label class="form-label">Last Action Taken</label><input class="form-input" id="e-ac"></div>
+    <div class="form-group"><label class="form-label">Notes</label><textarea class="form-textarea" id="e-no"></textarea></div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="deleteCandidate()" style="color:var(--accent4);border-color:rgba(251,113,133,.3);margin-right:auto">Delete</button>
+      <button class="btn-secondary" onclick="closeModal('edit')">Cancel</button>
+      <button class="btn-primary" onclick="updateCandidate()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ═══ SEED DATA ════════════════════════════════════════════════════════════════
 const SEED_C=[
@@ -458,8 +478,56 @@ function renderCandidates(){
   const cols=['#6ee7b7','#818cf8','#f59e0b','#fb7185','#38bdf8','#a78bfa','#6ee7b7','#818cf8','#f59e0b'];
   tb.innerHTML=list.map((c,i)=>{
     const ini=(c.fn[0]||'')+(c.ln[0]||'');const col=cols[i%cols.length];
-    return`<tr><td><div class="candidate-cell"><div class="avatar" style="background:${col}20;color:${col};border:1px solid ${col}40">${ini}</div><div><div class="candidate-name">${c.fn} ${c.ln}</div><div class="candidate-role">${c.ti||''}</div></div></div></td><td><span class="role-tag ${c.ro}">${rL[c.ro]||c.ro}</span></td><td style="color:var(--text-dim)">${c.co||'—'}</td><td><span class="badge badge-${c.st}"><span class="badge-dot"></span>${c.st}</span></td><td style="font-size:12px">${pM[c.pr]||'—'}</td><td style="color:var(--text-muted);font-size:12px;max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.ac||'—'}</td><td style="color:var(--text-muted);font-size:12px;max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.no||'—'}</td></tr>`;
+    return`<tr onclick="openEdit('${c.id}')" title="Click to edit"><td><div class="candidate-cell"><div class="avatar" style="background:${col}20;color:${col};border:1px solid ${col}40">${ini}</div><div><div class="candidate-name">${c.fn} ${c.ln}</div><div class="candidate-role">${c.ti||''}</div></div></div></td><td><span class="role-tag ${c.ro}">${rL[c.ro]||c.ro}</span></td><td style="color:var(--text-dim)">${c.co||'—'}</td><td><span class="badge badge-${c.st}"><span class="badge-dot"></span>${c.st}</span></td><td style="font-size:12px">${pM[c.pr]||'—'}</td><td style="color:var(--text-muted);font-size:12px;max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.ac||'—'}</td><td style="color:var(--text-muted);font-size:12px;max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.no||'—'}</td></tr>`;
   }).join('');
+}
+
+function openEdit(id){
+  const c=S.candidates.find(c=>c.id===id);if(!c)return;
+  document.getElementById('e-id').value=c.id;
+  document.getElementById('e-fn').value=c.fn||'';
+  document.getElementById('e-ln').value=c.ln||'';
+  document.getElementById('e-co').value=c.co||'';
+  document.getElementById('e-ti').value=c.ti||'';
+  document.getElementById('e-ro').value=c.ro||'lead';
+  document.getElementById('e-st').value=c.st||'sourced';
+  document.getElementById('e-pr').value=c.pr||'med';
+  document.getElementById('e-li').value=c.li||'';
+  document.getElementById('e-ac').value=c.ac||'';
+  document.getElementById('e-no').value=c.no||'';
+  openModal('edit');
+}
+
+function updateCandidate(){
+  const id=document.getElementById('e-id').value;
+  const idx=S.candidates.findIndex(c=>c.id===id);if(idx===-1)return;
+  const prev=S.candidates[idx].st;
+  S.candidates[idx]={...S.candidates[idx],
+    fn:document.getElementById('e-fn').value.trim(),
+    ln:document.getElementById('e-ln').value.trim(),
+    co:document.getElementById('e-co').value.trim(),
+    ti:document.getElementById('e-ti').value.trim(),
+    ro:document.getElementById('e-ro').value,
+    st:document.getElementById('e-st').value,
+    pr:document.getElementById('e-pr').value,
+    li:document.getElementById('e-li').value.trim(),
+    ac:document.getElementById('e-ac').value.trim(),
+    no:document.getElementById('e-no').value.trim(),
+  };
+  const c=S.candidates[idx];
+  if(prev!==c.st) addAct(`${c.fn} ${c.ln}: ${prev} → ${c.st}`,'#6ee7b7');
+  else addAct(`Updated: ${c.fn} ${c.ln}`,'#818cf8');
+  save();closeModal('edit');renderCandidates();updateStats();updateSidebar();
+}
+
+function deleteCandidate(){
+  const id=document.getElementById('e-id').value;
+  const c=S.candidates.find(c=>c.id===id);
+  if(!c)return;
+  if(!confirm(`Remove ${c.fn} ${c.ln} from pipeline?`))return;
+  S.candidates=S.candidates.filter(c=>c.id!==id);
+  addAct(`Removed candidate: ${c.fn} ${c.ln}`,'#f87171');
+  save();closeModal('edit');renderCandidates();updateStats();updateSidebar();
 }
 
 function saveCandidate(){
