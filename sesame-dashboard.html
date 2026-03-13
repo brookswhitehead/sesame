@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sesame AI — Recruiting Command Center</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Fraunces:ital,opsz,wght@0,9..144,200;0,9..144,400;0,9..144,600;1,9..144,300&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0b0e;--surface:#111318;--surface2:#181c23;--surface3:#1e2330;--border:rgba(255,255,255,0.07);--border-active:rgba(255,255,255,0.18);--text:#e8eaf0;--text-muted:#6b7280;--text-dim:#9ca3af;--accent:#6ee7b7;--accent2:#818cf8;--accent3:#f59e0b;--accent4:#fb7185;--accent5:#38bdf8;--radius:10px;--radius-sm:6px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;line-height:1.5;min-height:100vh;overflow-x:hidden}
+.shell{display:grid;grid-template-columns:220px 1fr;grid-template-rows:56px 1fr;min-height:100vh}
+.topbar{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;padding:0 24px;border-bottom:1px solid var(--border);background:rgba(10,11,14,0.95);backdrop-filter:blur(12px);position:sticky;top:0;z-index:100}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-mark{width:28px;height:28px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:#000}
+.brand-name{font-family:'Fraunces',serif;font-size:15px;font-weight:400;letter-spacing:-0.02em}
+.brand-name em{color:var(--accent);font-style:italic}
+.topbar-meta{display:flex;align-items:center;gap:20px}
+.live-badge{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--accent);font-family:'DM Mono',monospace;letter-spacing:.05em;text-transform:uppercase}
+.live-dot{width:6px;height:6px;background:var(--accent);border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
+.topbar-date{font-family:'DM Mono',monospace;font-size:11px;color:var(--text-muted)}
+.sidebar{border-right:1px solid var(--border);padding:20px 0;display:flex;flex-direction:column;gap:4px;background:var(--surface);position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto}
+.sidebar-label{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);font-family:'DM Mono',monospace;padding:12px 20px 6px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 20px;cursor:pointer;transition:all .15s;color:var(--text-dim);font-size:13.5px;border-left:2px solid transparent}
+.nav-item:hover{color:var(--text);background:var(--surface2)}
+.nav-item.active{color:var(--text);background:var(--surface2);border-left-color:var(--accent)}
+.nav-icon{font-size:15px;width:18px;text-align:center;flex-shrink:0}
+.nav-count{margin-left:auto;background:var(--surface3);color:var(--text-muted);font-family:'DM Mono',monospace;font-size:10px;padding:2px 7px;border-radius:20px;border:1px solid var(--border)}
+.nav-count.hot{background:rgba(251,113,133,.15);color:var(--accent4);border-color:rgba(251,113,133,.25)}
+.main{padding:28px 32px;overflow-y:auto;height:calc(100vh - 56px)}
+.tab-panel{display:none}
+.tab-panel.active{display:block;animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.page-header{margin-bottom:28px}
+.page-header h1{font-family:'Fraunces',serif;font-size:26px;font-weight:300;letter-spacing:-.03em;line-height:1.2}
+.page-header h1 em{font-style:italic;color:var(--accent)}
+.page-header p{color:var(--text-muted);font-size:13px;margin-top:4px}
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px;margin-bottom:28px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;position:relative;overflow:hidden;transition:border-color .2s}
+.stat-card:hover{border-color:var(--border-active)}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.stat-card.c1::before{background:#3b82f6}.stat-card.c2::before{background:#8b5cf6}.stat-card.c3::before{background:#f59e0b}.stat-card.c4::before{background:#10b981}.stat-card.c5::before{background:var(--accent4)}
+.stat-label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);font-family:'DM Mono',monospace;margin-bottom:6px}
+.stat-value{font-size:28px;font-weight:600;line-height:1;font-family:'Fraunces',serif}
+.stat-sub{font-size:11px;color:var(--text-muted);margin-top:4px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:20px}
+.card-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);background:var(--surface2)}
+.card-title{font-size:12px;font-weight:500;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim);font-family:'DM Mono',monospace}
+.card-action{background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--accent);font-size:11px;padding:5px 12px;cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif;font-weight:500}
+.card-action:hover{background:rgba(110,231,183,.1);border-color:var(--accent)}
+.data-table{width:100%;border-collapse:collapse}
+.data-table th{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted);font-weight:500;padding:10px 18px;text-align:left;border-bottom:1px solid var(--border);font-family:'DM Mono',monospace;white-space:nowrap}
+.data-table td{padding:13px 18px;border-bottom:1px solid var(--border);font-size:13.5px;vertical-align:middle}
+.data-table tr:last-child td{border-bottom:none}
+.data-table tbody tr{cursor:pointer;transition:background .1s}
+.data-table tbody tr:hover{background:var(--surface2)}
+.badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500;font-family:'DM Mono',monospace;white-space:nowrap}
+.badge-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.badge-sourced{background:rgba(59,130,246,.15);color:#60a5fa}.badge-sourced .badge-dot{background:#60a5fa}
+.badge-contacted{background:rgba(139,92,246,.15);color:#a78bfa}.badge-contacted .badge-dot{background:#a78bfa}
+.badge-interviewing{background:rgba(245,158,11,.15);color:#fbbf24}.badge-interviewing .badge-dot{background:#fbbf24}
+.badge-offer{background:rgba(16,185,129,.15);color:#34d399}.badge-offer .badge-dot{background:#34d399}
+.badge-declined{background:rgba(239,68,68,.12);color:#f87171}.badge-declined .badge-dot{background:#f87171}
+.badge-hold{background:rgba(107,114,128,.15);color:#9ca3af}.badge-hold .badge-dot{background:#9ca3af}
+.badge-tier1{background:rgba(110,231,183,.12);color:var(--accent)}
+.badge-tier2{background:rgba(129,140,248,.12);color:var(--accent2)}
+.badge-tier3{background:rgba(107,114,128,.12);color:#9ca3af}
+.badge-tier4{background:rgba(56,189,248,.12);color:var(--accent5)}
+.candidate-cell{display:flex;align-items:center;gap:10px}
+.avatar{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0}
+.candidate-name{font-weight:500;color:var(--text)}
+.candidate-role{font-size:11px;color:var(--text-muted);margin-top:1px}
+.role-tag{display:inline-block;font-size:10px;padding:2px 8px;border-radius:4px;border:1px solid var(--border);color:var(--text-dim);font-family:'DM Mono',monospace;white-space:nowrap}
+.role-tag.lead{border-color:rgba(110,231,183,.3);color:var(--accent)}
+.role-tag.voice{border-color:rgba(129,140,248,.3);color:var(--accent2)}
+.role-tag.hardware{border-color:rgba(245,158,11,.3);color:var(--accent3)}
+.role-tag.platform{border-color:rgba(56,189,248,.3);color:var(--accent5)}
+.company-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.company-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;cursor:pointer;transition:all .2s}
+.company-card:hover{border-color:var(--border-active);background:var(--surface2);transform:translateY(-1px)}
+.company-card-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px}
+.company-logo{width:36px;height:36px;border-radius:8px;background:var(--surface3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.company-name{font-size:14px;font-weight:600;color:var(--text);margin-bottom:3px}
+.company-url{font-size:11px;color:var(--accent5);font-family:'DM Mono',monospace;text-decoration:none;opacity:.8}
+.company-url:hover{opacity:1;text-decoration:underline}
+.company-focus{font-size:12px;color:var(--text-muted);line-height:1.5;margin-top:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.company-meta{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.actions-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.todo-item{display:flex;align-items:flex-start;gap:10px;padding:11px 0;border-bottom:1px solid var(--border)}
+.todo-item:last-child{border-bottom:none}
+.todo-check{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--border-active);flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;transition:all .15s;cursor:pointer}
+.todo-check.done{background:var(--accent);border-color:var(--accent);color:#000;font-size:10px}
+.todo-text{flex:1;font-size:13px}
+.todo-text.done-text{text-decoration:line-through;color:var(--text-muted)}
+.todo-tag{font-size:10px;padding:2px 7px;border-radius:4px;font-family:'DM Mono',monospace;flex-shrink:0;margin-top:1px}
+.tag-hot{background:rgba(251,113,133,.15);color:var(--accent4)}
+.tag-today{background:rgba(245,158,11,.12);color:var(--accent3)}
+.tag-soon{background:rgba(129,140,248,.12);color:var(--accent2)}
+.tag-passive{background:var(--surface3);color:var(--text-muted)}
+.braindump-area{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:16px}
+.braindump-label{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);font-family:'DM Mono',monospace;margin-bottom:8px}
+.braindump-textarea{width:100%;background:transparent;border:none;outline:none;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13.5px;line-height:1.7;resize:none;min-height:100px}
+.braindump-textarea::placeholder{color:var(--text-muted)}
+.note-item{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:10px}
+.note-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.note-title{font-size:12px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;font-family:'DM Mono',monospace;color:var(--accent)}
+.note-date{font-size:10px;color:var(--text-muted);font-family:'DM Mono',monospace}
+.note-body{font-size:13px;color:var(--text-dim);line-height:1.6}
+.overview-grid{display:grid;grid-template-columns:1fr 320px;gap:20px}
+.search-progress{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;margin-bottom:20px}
+.search-progress h3{font-family:'Fraunces',serif;font-size:16px;font-weight:300;letter-spacing:-.02em;margin-bottom:18px}
+.role-progress-item{margin-bottom:16px}
+.role-progress-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.role-name-label{font-size:12px;font-weight:500}
+.role-progress-count{font-size:11px;color:var(--text-muted);font-family:'DM Mono',monospace}
+.progress-bar-track{height:4px;background:var(--surface3);border-radius:2px;overflow:hidden}
+.progress-bar-fill{height:100%;border-radius:2px;transition:width .6s ease}
+.timeline-widget{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px}
+.timeline-widget h3{font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted);margin-bottom:16px}
+.timeline-event{display:flex;gap:12px;padding-bottom:16px;position:relative}
+.timeline-event::before{content:'';position:absolute;left:5px;top:18px;bottom:0;width:1px;background:var(--border)}
+.timeline-event:last-child::before{display:none}
+.timeline-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0;margin-top:3px;border:2px solid var(--bg)}
+.timeline-content{flex:1}
+.timeline-text{font-size:12.5px;color:var(--text-dim);line-height:1.5}
+.timeline-time{font-size:10px;color:var(--text-muted);font-family:'DM Mono',monospace;margin-top:2px}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.hidden{display:none}
+.modal{background:var(--surface);border:1px solid var(--border-active);border-radius:14px;padding:28px;width:100%;max-width:560px;max-height:80vh;overflow-y:auto;position:relative}
+.modal-title{font-family:'Fraunces',serif;font-size:20px;font-weight:300;margin-bottom:6px;letter-spacing:-.02em}
+.modal-sub{font-size:12px;color:var(--text-muted);margin-bottom:22px}
+.modal-close{position:absolute;top:16px;right:16px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);font-size:16px;transition:all .15s}
+.modal-close:hover{border-color:var(--border-active);color:var(--text)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.form-group{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+.form-label{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);font-family:'DM Mono',monospace}
+.form-input,.form-select,.form-textarea{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13.5px;padding:9px 12px;outline:none;transition:border-color .15s;width:100%}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--accent)}
+.form-select{cursor:pointer}.form-select option{background:var(--surface2)}
+.form-textarea{resize:vertical;min-height:80px}
+.btn-primary{background:var(--accent);color:#000;border:none;border-radius:var(--radius-sm);padding:10px 20px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s}
+.btn-primary:hover{opacity:.9;transform:translateY(-1px)}
+.btn-secondary{background:transparent;color:var(--text-dim);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 20px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;transition:all .15s}
+.btn-secondary:hover{border-color:var(--border-active);color:var(--text)}
+.modal-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
+.filter-row{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+.filter-pill{padding:5px 13px;border-radius:20px;border:1px solid var(--border);font-size:11px;cursor:pointer;transition:all .15s;color:var(--text-muted);font-family:'DM Mono',monospace}
+.filter-pill:hover{border-color:var(--border-active);color:var(--text)}
+.filter-pill.active{background:rgba(110,231,183,.12);border-color:var(--accent);color:var(--accent)}
+.search-input-wrap{position:relative;margin-bottom:16px}
+.search-input-wrap input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:13px;padding:9px 12px 9px 36px;outline:none;font-family:'DM Sans',sans-serif;transition:border-color .15s}
+.search-input-wrap input:focus{border-color:var(--accent)}
+.search-input-wrap input::placeholder{color:var(--text-muted)}
+.search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:13px}
+.empty-state{text-align:center;padding:48px 20px;color:var(--text-muted)}
+.empty-state-icon{font-size:32px;margin-bottom:12px}
+.empty-state h3{font-size:14px;font-weight:500;color:var(--text-dim);margin-bottom:6px}
+.docs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+.doc-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;cursor:pointer;transition:all .2s}
+.doc-card:hover{border-color:var(--border-active);transform:translateY(-1px)}
+.doc-icon{font-size:22px;margin-bottom:10px}
+.doc-title{font-size:13.5px;font-weight:500;color:var(--text);margin-bottom:4px}
+.doc-tag{display:inline-block;margin-top:10px;font-size:10px;padding:2px 7px;border-radius:4px;background:var(--surface3);color:var(--text-muted);font-family:'DM Mono',monospace;border:1px solid var(--border)}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:2px}
+</style>
+</head>
+<body>
+<div class="shell">
+<div class="topbar">
+  <div class="brand"><div class="brand-mark">S</div><span class="brand-name">Sesame <em>AI</em> — Recruiting Command</span></div>
+  <div class="topbar-meta"><div class="live-badge"><div class="live-dot"></div>Active Search</div><div class="topbar-date" id="topbarDate"></div></div>
+</div>
+<div class="sidebar">
+  <div class="sidebar-label">Navigation</div>
+  <div class="nav-item active" onclick="switchTab('overview')"><span class="nav-icon">◎</span>Overview</div>
+  <div class="nav-item" onclick="switchTab('candidates')"><span class="nav-icon">◈</span>Candidates<span class="nav-count" id="navCC">0</span></div>
+  <div class="nav-item" onclick="switchTab('companies')"><span class="nav-icon">◉</span>Target Companies<span class="nav-count" id="navCO">0</span></div>
+  <div class="sidebar-label" style="margin-top:8px">Workspace</div>
+  <div class="nav-item" onclick="switchTab('actions')"><span class="nav-icon">⚡</span>Action Center<span class="nav-count hot" id="navHot" style="display:none">0</span></div>
+  <div class="nav-item" onclick="switchTab('docs')"><span class="nav-icon">◫</span>Docs &amp; Notes</div>
+  <div style="margin-top:auto;padding:20px;border-top:1px solid var(--border)">
+    <div style="font-size:11px;color:var(--text-muted);font-family:'DM Mono',monospace;line-height:1.8">
+      <div>SEARCH · Series B</div><div>4 Open Roles</div><div style="color:var(--accent);margin-top:4px">Sesame AI</div>
+    </div>
+  </div>
+</div>
+<div class="main">
+
+<!-- OVERVIEW -->
+<div class="tab-panel active" id="tab-overview">
+  <div class="page-header"><h1>Search <em>Overview</em></h1><p>Four-role design search · Sesame AI · Series B · Partner: Brady Green / Voyager Talent</p></div>
+  <div class="stats-row">
+    <div class="stat-card c1"><div class="stat-label">Sourced</div><div class="stat-value" id="sS" style="color:#60a5fa">0</div><div class="stat-sub">identified</div></div>
+    <div class="stat-card c2"><div class="stat-label">Contacted</div><div class="stat-value" id="sCo" style="color:#a78bfa">0</div><div class="stat-sub">outreach sent</div></div>
+    <div class="stat-card c3"><div class="stat-label">Interviewing</div><div class="stat-value" id="sI" style="color:#fbbf24">0</div><div class="stat-sub">active</div></div>
+    <div class="stat-card c4"><div class="stat-label">Offers</div><div class="stat-value" id="sO" style="color:#34d399">0</div><div class="stat-sub">extended</div></div>
+    <div class="stat-card c5"><div class="stat-label">Total Pipeline</div><div class="stat-value" id="sT" style="color:var(--text)">0</div><div class="stat-sub">all candidates</div></div>
+  </div>
+  <div class="overview-grid">
+    <div>
+      <div class="search-progress"><h3>Role Progress</h3>
+        <div class="role-progress-item"><div class="role-progress-header"><span class="role-name-label">Lead Designer</span><span class="role-progress-count" id="prog-lead">0 candidates</span></div><div class="progress-bar-track"><div class="progress-bar-fill" id="bar-lead" style="width:0%;background:var(--accent)"></div></div></div>
+        <div class="role-progress-item"><div class="role-progress-header"><span class="role-name-label">Voice UX Designer</span><span class="role-progress-count" id="prog-voice">0 candidates</span></div><div class="progress-bar-track"><div class="progress-bar-fill" id="bar-voice" style="width:0%;background:var(--accent2)"></div></div></div>
+        <div class="role-progress-item"><div class="role-progress-header"><span class="role-name-label">Hardware &amp; Wearables Designer</span><span class="role-progress-count" id="prog-hardware">0 candidates</span></div><div class="progress-bar-track"><div class="progress-bar-fill" id="bar-hardware" style="width:0%;background:var(--accent3)"></div></div></div>
+        <div class="role-progress-item"><div class="role-progress-header"><span class="role-name-label">Platform &amp; Developer Tools</span><span class="role-progress-count" id="prog-platform">0 candidates</span></div><div class="progress-bar-track"><div class="progress-bar-fill" id="bar-platform" style="width:0%;background:var(--accent5)"></div></div></div>
+      </div>
+      <div class="card"><div class="card-header"><span class="card-title">Hot Actions Right Now</span></div><div style="padding:6px 18px 12px" id="overviewHot"><div style="padding:12px 0;font-size:13px;color:var(--text-muted)">Loading...</div></div></div>
+    </div>
+    <div>
+      <div class="timeline-widget"><h3>Activity Feed</h3><div id="activityFeed"></div></div>
+      <div class="card" style="margin-top:16px"><div class="card-header"><span class="card-title">Client Context</span></div>
+        <div style="padding:16px 18px;font-size:12.5px;color:var(--text-dim);line-height:1.9">
+          <div style="margin-bottom:10px"><span style="color:var(--accent);font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.08em">Company</span><br>Sesame AI</div>
+          <div style="margin-bottom:10px"><span style="color:var(--accent);font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.08em">Stage</span><br>Series B · Voice-first AI Platform</div>
+          <div style="margin-bottom:10px"><span style="color:var(--accent);font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.08em">Founded By</span><br>Former Oculus executives · CPO Nate Mitchell</div>
+          <div style="margin-bottom:10px"><span style="color:var(--accent);font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.08em">Partner</span><br>Brady Green · Voyager Talent</div>
+          <div><span style="color:var(--accent);font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.08em">Structure</span><br>Contingent split-fee · No LI Recruiter</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CANDIDATES -->
+<div class="tab-panel" id="tab-candidates">
+  <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between">
+    <div><h1>Candidate <em>Pipeline</em></h1><p>9 candidates pre-loaded · Add more as you source</p></div>
+    <button class="card-action" onclick="openModal('candidate')" style="margin-top:6px">+ Add Candidate</button>
+  </div>
+  <div class="filter-row" id="cFilters">
+    <div class="filter-pill active" onclick="fCand('all',this)">All</div>
+    <div class="filter-pill" onclick="fCand('sourced',this)">Sourced</div>
+    <div class="filter-pill" onclick="fCand('contacted',this)">Contacted</div>
+    <div class="filter-pill" onclick="fCand('interviewing',this)">Interviewing</div>
+    <div class="filter-pill" onclick="fCand('offer',this)">Offer</div>
+    <div class="filter-pill" onclick="fCand('declined',this)">Declined</div>
+    <div class="filter-pill" onclick="fCand('hold',this)">Hold</div>
+  </div>
+  <div class="search-input-wrap"><span class="search-icon">🔍</span><input type="text" placeholder="Search candidates..." id="cSearch" oninput="renderCandidates()"></div>
+  <div class="card">
+    <table class="data-table"><thead><tr><th>Candidate</th><th>Role</th><th>Current Co.</th><th>Status</th><th>Priority</th><th>Last Action</th><th>Notes</th></tr></thead><tbody id="cTbody"></tbody></table>
+    <div id="cEmpty" class="empty-state" style="display:none"><div class="empty-state-icon">◈</div><h3>No candidates match</h3></div>
+  </div>
+</div>
+
+<!-- COMPANIES -->
+<div class="tab-panel" id="tab-companies">
+  <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between">
+    <div><h1>Target <em>Companies</em></h1><p>25 companies pre-loaded · 4 tiers · organized by role focus</p></div>
+    <button class="card-action" onclick="openModal('company')" style="margin-top:6px">+ Add Company</button>
+  </div>
+  <div class="filter-row" id="coFilters">
+    <div class="filter-pill active" onclick="fComp('all',this)">All Tiers</div>
+    <div class="filter-pill" onclick="fComp('1',this)">Tier 1</div>
+    <div class="filter-pill" onclick="fComp('2',this)">Tier 2</div>
+    <div class="filter-pill" onclick="fComp('3',this)">Tier 3</div>
+    <div class="filter-pill" onclick="fComp('4',this)">Tier 4</div>
+  </div>
+  <div class="search-input-wrap"><span class="search-icon">🔍</span><input type="text" placeholder="Search companies..." id="coSearch" oninput="renderCompanies()"></div>
+  <div class="company-grid" id="coGrid"></div>
+  <div id="coEmpty" class="empty-state" style="display:none"><div class="empty-state-icon">◉</div><h3>No companies match</h3></div>
+</div>
+
+<!-- ACTIONS -->
+<div class="tab-panel" id="tab-actions">
+  <div class="page-header"><h1>Action <em>Center</em></h1><p>Tasks, hot items, daily priorities, and brain dumps</p></div>
+  <div class="actions-grid">
+    <div>
+      <div class="card" style="margin-bottom:20px">
+        <div class="card-header"><span class="card-title">Tasks &amp; To-Dos</span><button class="card-action" onclick="openModal('task')">+ Add Task</button></div>
+        <div style="padding:0 18px 6px" id="todoList"></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Tracking Log</span></div>
+        <div style="padding:14px 18px" id="trackLog"></div>
+      </div>
+    </div>
+    <div>
+      <div class="braindump-area">
+        <div class="braindump-label">🧠 Brain Dump — type anything, sort it later</div>
+        <textarea class="braindump-textarea" id="dumpText" placeholder="Dump it all here. Ideas, follow-ups, observations, worries..." rows="7"></textarea>
+        <div style="display:flex;justify-content:flex-end;margin-top:8px"><button class="card-action" onclick="saveDump()">Save Note →</button></div>
+      </div>
+      <div style="font-size:12px;font-weight:500;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim);font-family:'DM Mono',monospace;margin-bottom:10px;padding:0 2px">Saved Notes</div>
+      <div id="savedNotes"></div>
+    </div>
+  </div>
+</div>
+
+<!-- DOCS -->
+<div class="tab-panel" id="tab-docs">
+  <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between">
+    <div><h1>Docs <em>&amp; Notes</em></h1><p>All search documents, outreach drafts, process notes, and references</p></div>
+    <button class="card-action" onclick="openModal('doc')" style="margin-top:6px">+ Add Doc</button>
+  </div>
+  <div class="docs-grid" id="docsGrid"></div>
+</div>
+
+</div><!-- /main -->
+</div><!-- /shell -->
+
+<!-- MODALS -->
+<div class="modal-overlay hidden" id="modal-candidate">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('candidate')">✕</button>
+    <div class="modal-title">Add Candidate</div><div class="modal-sub">Enter details to add to the pipeline</div>
+    <div class="form-row"><div class="form-group"><label class="form-label">First Name *</label><input class="form-input" id="c-fn" placeholder="Stephanie"></div><div class="form-group"><label class="form-label">Last Name *</label><input class="form-input" id="c-ln" placeholder="De Luna"></div></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">Current Company</label><input class="form-input" id="c-co" placeholder="Meta Reality Labs"></div><div class="form-group"><label class="form-label">Current Title</label><input class="form-input" id="c-ti" placeholder="Senior UX Designer"></div></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">Target Role *</label><select class="form-select" id="c-ro"><option value="">Select...</option><option value="lead">Lead Designer</option><option value="voice">Voice UX Designer</option><option value="hardware">Hardware &amp; Wearables</option><option value="platform">Platform &amp; Dev Tools</option></select></div><div class="form-group"><label class="form-label">Status *</label><select class="form-select" id="c-st"><option value="sourced">Sourced</option><option value="contacted">Contacted</option><option value="interviewing">Interviewing</option><option value="offer">Offer Extended</option><option value="declined">Declined</option><option value="hold">On Hold</option></select></div></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">Priority</label><select class="form-select" id="c-pr"><option value="high">🔴 High</option><option value="med" selected>🟡 Medium</option><option value="low">⚫ Low</option></select></div><div class="form-group"><label class="form-label">LinkedIn URL</label><input class="form-input" id="c-li" placeholder="linkedin.com/in/..."></div></div>
+    <div class="form-group"><label class="form-label">Last Action Taken</label><input class="form-input" id="c-ac" placeholder="e.g. Sent initial outreach email"></div>
+    <div class="form-group"><label class="form-label">Notes</label><textarea class="form-textarea" id="c-no" placeholder="Dual-fit, context, observations..."></textarea></div>
+    <div class="modal-footer"><button class="btn-secondary" onclick="closeModal('candidate')">Cancel</button><button class="btn-primary" onclick="saveCandidate()">Add to Pipeline</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="modal-company">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('company')">✕</button>
+    <div class="modal-title">Add Target Company</div><div class="modal-sub">Add a sourcing target</div>
+    <div class="form-row"><div class="form-group"><label class="form-label">Company Name *</label><input class="form-input" id="co-nm"></div><div class="form-group"><label class="form-label">Website URL</label><input class="form-input" id="co-ur"></div></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">Tier</label><select class="form-select" id="co-ti"><option value="1">Tier 1 — Prime target</option><option value="2">Tier 2 — Strong fit</option><option value="3">Tier 3 — Exploratory</option><option value="4">Tier 4 — Platform/Dev</option></select></div><div class="form-group"><label class="form-label">Role Focus</label><select class="form-select" id="co-ro"><option value="all">All Roles</option><option value="lead">Lead Designer</option><option value="voice">Voice UX</option><option value="hardware">Hardware</option><option value="platform">Platform</option></select></div></div>
+    <div class="form-group"><label class="form-label">AI Focus / What They Do</label><textarea class="form-textarea" id="co-fo"></textarea></div>
+    <div class="form-group"><label class="form-label">Notes</label><textarea class="form-textarea" id="co-no"></textarea></div>
+    <div class="modal-footer"><button class="btn-secondary" onclick="closeModal('company')">Cancel</button><button class="btn-primary" onclick="saveCompany()">Add Company</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="modal-task">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('task')">✕</button>
+    <div class="modal-title">Add Task</div><div class="modal-sub">What needs to happen? Be specific.</div>
+    <div class="form-group"><label class="form-label">Task *</label><input class="form-input" id="t-tx" placeholder="e.g. Schedule HM intake call with Brady Green"></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">Priority</label><select class="form-select" id="t-pr"><option value="hot">🔴 HOT — Do today</option><option value="today" selected>🟡 TODAY — High priority</option><option value="soon">🔵 SOON — This week</option><option value="passive">⚫ Passive</option></select></div><div class="form-group"><label class="form-label">Category</label><select class="form-select" id="t-ca"><option value="outreach">Candidate Outreach</option><option value="admin">Admin / Process</option><option value="hm">Hiring Manager</option><option value="sourcing">Sourcing</option><option value="partner">Partner (Brady)</option><option value="other">Other</option></select></div></div>
+    <div class="modal-footer"><button class="btn-secondary" onclick="closeModal('task')">Cancel</button><button class="btn-primary" onclick="saveTask()">Add Task</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="modal-doc">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('doc')">✕</button>
+    <div class="modal-title">Add Document / Note</div><div class="modal-sub">Add a doc, link, or note to your workspace</div>
+    <div class="form-group"><label class="form-label">Title *</label><input class="form-input" id="d-ti"></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">Type</label><select class="form-select" id="d-ty"><option value="doc">📄 Document</option><option value="template">📋 Template</option><option value="email">✉️ Outreach Draft</option><option value="note">📝 Note</option><option value="link">🔗 Link</option><option value="intake">📊 Intake / Prep</option></select></div><div class="form-group"><label class="form-label">URL (optional)</label><input class="form-input" id="d-ur" placeholder="https://..."></div></div>
+    <div class="form-group"><label class="form-label">Content / Summary</label><textarea class="form-textarea" id="d-bo" style="min-height:120px"></textarea></div>
+    <div class="modal-footer"><button class="btn-secondary" onclick="closeModal('doc')">Cancel</button><button class="btn-primary" onclick="saveDoc()">Save Document</button></div>
+  </div>
+</div>
+
+<script>
+// ═══ SEED DATA ════════════════════════════════════════════════════════════════
+const SEED_C=[
+  {id:'sd1',fn:'Stephanie',ln:'De Luna',co:'Meta Reality Labs',ti:'Senior Product Designer',ro:'voice',st:'sourced',pr:'high',li:'linkedin.com/in/stephanieDeluna',ac:'Identified — pending outreach alignment with Brady',no:'DUAL FIT: Voice UX + Hardware. Strongest overall candidate. Used as template for outreach drafts.',dt:'Mar 2026'},
+  {id:'ea1',fn:'Elaine',ln:'Anzaldo',co:'Meta Reality Labs',ti:'Product Designer',ro:'hardware',st:'sourced',pr:'high',li:'',ac:'Identified — not yet contacted',no:'DUAL FIT: Hardware + Voice UX. Meta Reality Labs. Strong ambient/spatial UX profile.',dt:'Mar 2026'},
+  {id:'jp1',fn:'John',ln:'Price',co:'Apple',ti:'Human Interface Designer',ro:'lead',st:'sourced',pr:'high',li:'',ac:'Identified — not yet contacted',no:'DUAL FIT: Lead + Hardware. Apple HI team. High-caliber. Will require warm intro or exceptional outreach.',dt:'Mar 2026'},
+  {id:'cd1',fn:'Christian',ln:'Dalonzo',co:'Apple',ti:'Human Interface Designer',ro:'hardware',st:'sourced',pr:'high',li:'',ac:'Research complete — pending outreach',no:'Apple HI team since Nov 2018. Ex-Meta Messenger. Org in transition post-Dye departure. Lead with Nate Mitchell / Oculus angle.',dt:'Mar 2026'},
+  {id:'rr1',fn:'Robin',ln:'Rendle',co:'Apple',ti:'Software Designer',ro:'platform',st:'sourced',pr:'high',li:'',ac:'Floated to Brady as top 3 prospect',no:'Prev: Retool, Sentry, Gusto — three dev/platform tools companies in a row. Public writer. Career arc = Platform role. Not a lifer.',dt:'Mar 2026'},
+  {id:'dp1',fn:'Dennis',ln:'Park',co:'Apple',ti:'Product Designer',ro:'voice',st:'sourced',pr:'med',li:'',ac:'Research complete — pending outreach',no:'Apple. Strong voice/HI background. Needs warm path or craft-first pitch.',dt:'Mar 2026'},
+  {id:'jg1',fn:'Justin',ln:'Graham',co:'Capitol AI / Freelance',ti:'Product Designer',ro:'voice',st:'sourced',pr:'high',li:'linkedin.com/in/justingraham',ac:'Floated to Brady as top 3 prospect',no:'Most moveable on the list. Dribbble shows available for work. AI-adjacent at Capitol AI (YC-backed). High energy, raw talent. Maps to Voice UX or Lead.',dt:'Mar 2026'},
+  {id:'ph1',fn:'Paul',ln:'Hoover',co:'Google (ex-Meta AR, ShapesXR)',ti:'Senior Product Designer',ro:'hardware',st:'sourced',pr:'high',li:'linkedin.com/in/paulhoover',ac:'Floated to Brady as top 3 prospect',no:'Meta Nazare AR glasses 2019–2022. 1.2 patents/yr novel HCI. Portfolio refreshed = job search signal. Bullseye for Hardware. Lead with Nate Mitchell angle.',dt:'Mar 2026'},
+  {id:'pp1',fn:'Pritam',ln:'Pebam',co:'Meta Reality Labs',ti:'Product Designer',ro:'voice',st:'sourced',pr:'med',li:'',ac:'Identified — not yet contacted',no:'IIT Bombay + Google pedigree. Writes publicly about VR spatial design. Reality Labs turbulence may create openness.',dt:'Mar 2026'},
+];
+
+const SEED_CO=[
+  {id:'o1',nm:'Meta Reality Labs',ur:'meta.com',ti:'1',ro:'voice',fo:'Active voice + ambient UX at scale; spatial audio, AR interfaces. Core pipeline source — 3 candidates identified here.',no:'Top sourcing priority.',dt:'Mar 2026'},
+  {id:'o2',nm:'Apple — Siri / Vision Pro',ur:'apple.com',ti:'1',ro:'voice',fo:'Deep screenless interaction design; Vision Pro UX + HI team. Org in transition post-Alan Dye departure. 4 candidates identified.',no:'Christian Dalonzo, Robin Rendle, Dennis Park, John Price.',dt:'Mar 2026'},
+  {id:'o3',nm:'Amazon Alexa Design',ur:'amazon.com',ti:'1',ro:'voice',fo:'Longest-running voice UX team; strong process and scale. Voice-first discipline baked in.',no:'',dt:'Mar 2026'},
+  {id:'o4',nm:'Google — Assistant / Nest',ur:'google.com',ti:'1',ro:'voice',fo:'Multimodal AI + ambient UX; large design org. Paul Hoover recently joined.',no:'',dt:'Mar 2026'},
+  {id:'o5',nm:'ElevenLabs',ur:'elevenlabs.io',ti:'1',ro:'voice',fo:'Voice AI product; small team, strong design culture. Voice-native from day one.',no:'',dt:'Mar 2026'},
+  {id:'o6',nm:'Inflection AI',ur:'inflection.ai',ti:'1',ro:'voice',fo:'Pi assistant design team. Acquired by Microsoft 2024 — design team dispersed, many still Bay Area.',no:'Talent likely available. Search LinkedIn.',dt:'Mar 2026'},
+  {id:'o7',nm:'Character.AI',ur:'character.ai',ti:'1',ro:'voice',fo:'AI companion design; directly adjacent to Sesame\'s core product and mission.',no:'',dt:'Mar 2026'},
+  {id:'o8',nm:'Snap',ur:'snap.com',ti:'1',ro:'hardware',fo:'AR/ambient UX; Spectacles team has wearable design chops at scale.',no:'',dt:'Mar 2026'},
+  {id:'o9',nm:'Humane',ur:'humane.com',ti:'2',ro:'hardware',fo:'AI Pin team — screenless interaction by definition. HP acquired Feb 2025. Former design team now on market.',no:'🔴 PRIORITY: Humane alumni = most directly qualified hardware candidates available. Search LinkedIn for former Humane designers.',dt:'Mar 2026'},
+  {id:'o10',nm:'Rabbit',ur:'rabbit.tech',ti:'2',ro:'hardware',fo:'R1 device; ambient AI hardware UX. Small team, fast-moving.',no:'',dt:'Mar 2026'},
+  {id:'o11',nm:'Bose',ur:'bose.com',ti:'2',ro:'hardware',fo:'Audio-first product design; strong wearable UX and interaction design heritage.',no:'',dt:'Mar 2026'},
+  {id:'o12',nm:'Sonos',ur:'sonos.com',ti:'2',ro:'hardware',fo:'Audio product UX; interaction design at hardware level. Clean design culture.',no:'',dt:'Mar 2026'},
+  {id:'o13',nm:'Oura',ur:'ouraring.com',ti:'2',ro:'hardware',fo:'Wearable UX; strong ambient/passive interaction design. Health + hardware intersection.',no:'',dt:'Mar 2026'},
+  {id:'o14',nm:'Ray-Ban Meta',ur:'meta.com',ti:'2',ro:'hardware',fo:'Smart glasses UX; directly maps to Sesame hardware roadmap. Physical + digital product.',no:'',dt:'Mar 2026'},
+  {id:'o15',nm:'ShapesXR',ur:'shapesxr.com',ti:'2',ro:'hardware',fo:'Spatial design tooling; AR/VR creation platform. Paul Hoover was Head of Design here.',no:'Small team. Strong spatial design talent.',dt:'Mar 2026'},
+  {id:'o16',nm:'OpenAI',ur:'openai.com',ti:'3',ro:'voice',fo:'ChatGPT voice mode design team; conversational AI at the highest scale.',no:'',dt:'Mar 2026'},
+  {id:'o17',nm:'Anthropic',ur:'anthropic.com',ti:'3',ro:'platform',fo:'AI product design; thoughtful, systems-oriented designers. Strong intellectual culture.',no:'',dt:'Mar 2026'},
+  {id:'o18',nm:'Perplexity',ur:'perplexity.ai',ti:'3',ro:'voice',fo:'Conversational search UX; fast-moving product team. Voice + search intersection.',no:'',dt:'Mar 2026'},
+  {id:'o19',nm:'Notion AI',ur:'notion.so',ti:'3',ro:'platform',fo:'AI-first product evolution; adjacent voice/chat product teams.',no:'',dt:'Mar 2026'},
+  {id:'o20',nm:'Intercom',ur:'intercom.com',ti:'3',ro:'voice',fo:'Conversational AI product design; customer-facing AI interaction at scale.',no:'',dt:'Mar 2026'},
+  {id:'o21',nm:'Figma',ur:'figma.com',ti:'4',ro:'platform',fo:'Design tooling and developer platform UX. Systems thinkers who love technical complexity.',no:'Platform & Dev Tools role.',dt:'Mar 2026'},
+  {id:'o22',nm:'Vercel',ur:'vercel.com',ti:'4',ro:'platform',fo:'Developer experience design; highly technical design culture. Platform-first thinking.',no:'Platform & Dev Tools role.',dt:'Mar 2026'},
+  {id:'o23',nm:'Stripe',ur:'stripe.com',ti:'4',ro:'platform',fo:'API-first design culture; renowned for developer-facing UX and documentation design.',no:'Platform & Dev Tools role.',dt:'Mar 2026'},
+  {id:'o24',nm:'Twilio',ur:'twilio.com',ti:'4',ro:'platform',fo:'Developer platform UX; voice/communications API design heritage directly relevant.',no:'Platform & Dev Tools role.',dt:'Mar 2026'},
+  {id:'o25',nm:'Segment',ur:'segment.com',ti:'4',ro:'platform',fo:'Data platform UX; complex enterprise dashboard and configuration design.',no:'Platform & Dev Tools role.',dt:'Mar 2026'},
+];
+
+const SEED_T=[
+  {id:'t1',tx:'Schedule HM intake call — Brady Green + Sesame hiring manager',pr:'hot',ca:'hm',dn:false,dt:'Mar 2026'},
+  {id:'t2',tx:'Align with Brady on comp ranges for all 4 roles before any offer conversations',pr:'hot',ca:'partner',dn:false,dt:'Mar 2026'},
+  {id:'t3',tx:'Begin outreach to Justin Graham — Dribbble shows available, most moveable candidate',pr:'today',ca:'outreach',dn:false,dt:'Mar 2026'},
+  {id:'t4',tx:'Begin outreach to Paul Hoover — portfolio refreshed, open door signal',pr:'today',ca:'outreach',dn:false,dt:'Mar 2026'},
+  {id:'t5',tx:'Source Humane AI Pin alumni on LinkedIn — prime hardware candidates now on market',pr:'today',ca:'sourcing',dn:false,dt:'Mar 2026'},
+  {id:'t6',tx:'Send outreach to Stephanie De Luna — pending HM alignment first',pr:'soon',ca:'outreach',dn:false,dt:'Mar 2026'},
+  {id:'t7',tx:'Align Sesame pitch narrative with Brady before candidate contact begins',pr:'soon',ca:'partner',dn:false,dt:'Mar 2026'},
+  {id:'t8',tx:'Source additional Lead Designer candidates from Apple HI + Google HI teams',pr:'soon',ca:'sourcing',dn:false,dt:'Mar 2026'},
+];
+
+const SEED_D=[
+  {id:'d1',ti:'Search Process Overview',ty:'doc',ur:'',bo:'Comprehensive overview of the four-role Sesame AI design search. Methodology, partnership structure with Voyager Talent / Brady Green, candidate lifecycle, and timeline.',dt:'Mar 2026'},
+  {id:'d2',ti:'HM Intake Prep Document',ty:'intake',ur:'',bo:'Hiring manager intake prep — questions, role priorities, compensation alignment, timeline expectations, and process ownership clarification.',dt:'Mar 2026'},
+  {id:'d3',ti:'Outreach Template — Stephanie De Luna (Template Candidate)',ty:'email',ur:'',bo:'Two variant outreach drafts (A: short & direct / B: narrative). Pending HM alignment before sending. Stephanie flagged as dual-fit: Voice UX + Hardware.',dt:'Mar 2026'},
+  {id:'d4',ti:'25-Company Tiered Sourcing List',ty:'link',ur:'',bo:'All 25 target companies pre-loaded in Target Companies tab. 4 tiers, color-coded by role focus. Companies: Meta, Apple, Amazon, Google, ElevenLabs, Inflection, Character.AI, Snap, Humane, Rabbit, Bose, Sonos, Oura, Ray-Ban Meta, ShapesXR, OpenAI, Anthropic, Perplexity, Notion, Intercom, Figma, Vercel, Stripe, Twilio, Segment.',dt:'Mar 2026'},
+  {id:'d5',ti:'Sesame AI — Client Brief',ty:'note',ur:'sesame.ai',bo:'Series B, voice-first AI platform. Founded by former Oculus executives including CPO Nate Mitchell. Hardware + voice design DNA. Smart glasses roadmap. Strong cultural fit for ex-Meta/Apple HI designers.',dt:'Mar 2026'},
+  {id:'d6',ti:'Top 3 Candidates Floated to Brady',ty:'note',ur:'',bo:'Justin Graham (Voice UX / Lead), Paul Hoover (Hardware), Robin Rendle (Platform). Submitted as targeted prospects — not yet screened. Brady informed these are sourcing targets, not pre-qualified.',dt:'Mar 2026'},
+  {id:'d7',ti:'Brady Green — Partnership Notes',ty:'note',ur:'',bo:'Contingent split-fee structure. No LinkedIn Recruiter provided. Key outstanding: HM intro, comp ranges, and pitch narrative alignment before outreach begins.',dt:'Mar 2026'},
+];
+
+// ═══ STATE ════════════════════════════════════════════════════════════════════
+let S={candidates:[],companies:[],tasks:[],docs:[],notes:[],activity:[],cf:'all',cof:'all'};
+
+function loadState(){
+  try{const s=localStorage.getItem('sesame-rc-v3');if(s){S={...S,...JSON.parse(s)};return;}}catch(e){}
+  S.candidates=SEED_C;S.companies=SEED_CO;S.tasks=SEED_T;S.docs=SEED_D;
+  S.activity=[
+    {id:'a1',tx:'Dashboard initialized with pre-loaded search data',cl:'#6ee7b7',ti:'Now',dt:'Mar 13, 2026'},
+    {id:'a2',tx:'9 candidates loaded across all 4 roles',cl:'#818cf8',ti:'Now',dt:'Mar 13, 2026'},
+    {id:'a3',tx:'25 target companies loaded across 4 tiers',cl:'#f59e0b',ti:'Now',dt:'Mar 13, 2026'},
+    {id:'a4',tx:'Justin Graham, Paul Hoover, Robin Rendle floated to Brady',cl:'#6ee7b7',ti:'Prev',dt:'Mar 2026'},
+  ];
+}
+function save(){try{localStorage.setItem('sesame-rc-v3',JSON.stringify(S));}catch(e){}}
+function uid(){return Math.random().toString(36).slice(2,9)}
+function today(){return new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}
+function nowt(){return new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}
+
+// ═══ NAV ══════════════════════════════════════════════════════════════════════
+function switchTab(t){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('tab-'+t).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>{if(n.getAttribute('onclick')&&n.getAttribute('onclick').includes("'"+t+"'"))n.classList.add('active');});
+  refreshAll();
+}
+
+// ═══ CANDIDATES ═══════════════════════════════════════════════════════════════
+function fCand(f,el){S.cf=f;document.querySelectorAll('#cFilters .filter-pill').forEach(p=>p.classList.remove('active'));el.classList.add('active');renderCandidates();}
+
+function renderCandidates(){
+  const q=(document.getElementById('cSearch')?.value||'').toLowerCase();
+  let list=S.candidates;
+  if(S.cf!=='all')list=list.filter(c=>c.st===S.cf);
+  if(q)list=list.filter(c=>(c.fn+' '+c.ln).toLowerCase().includes(q)||c.co.toLowerCase().includes(q)||c.ro.toLowerCase().includes(q));
+  const tb=document.getElementById('cTbody'),em=document.getElementById('cEmpty');
+  if(!tb)return;
+  if(list.length===0){tb.innerHTML='';em.style.display='';return;}
+  em.style.display='none';
+  const rL={lead:'Lead Designer',voice:'Voice UX',hardware:'Hardware',platform:'Platform'};
+  const pM={high:'🔴 High',med:'🟡 Med',low:'⚫ Low'};
+  const cols=['#6ee7b7','#818cf8','#f59e0b','#fb7185','#38bdf8','#a78bfa','#6ee7b7','#818cf8','#f59e0b'];
+  tb.innerHTML=list.map((c,i)=>{
+    const ini=(c.fn[0]||'')+(c.ln[0]||'');const col=cols[i%cols.length];
+    return`<tr><td><div class="candidate-cell"><div class="avatar" style="background:${col}20;color:${col};border:1px solid ${col}40">${ini}</div><div><div class="candidate-name">${c.fn} ${c.ln}</div><div class="candidate-role">${c.ti||''}</div></div></div></td><td><span class="role-tag ${c.ro}">${rL[c.ro]||c.ro}</span></td><td style="color:var(--text-dim)">${c.co||'—'}</td><td><span class="badge badge-${c.st}"><span class="badge-dot"></span>${c.st}</span></td><td style="font-size:12px">${pM[c.pr]||'—'}</td><td style="color:var(--text-muted);font-size:12px;max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.ac||'—'}</td><td style="color:var(--text-muted);font-size:12px;max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.no||'—'}</td></tr>`;
+  }).join('');
+}
+
+function saveCandidate(){
+  const fn=document.getElementById('c-fn').value.trim(),ln=document.getElementById('c-ln').value.trim();
+  if(!fn||!ln){alert('First and last name required.');return;}
+  const ro=document.getElementById('c-ro').value;if(!ro){alert('Select a role.');return;}
+  S.candidates.push({id:uid(),fn,ln,co:document.getElementById('c-co').value.trim(),ti:document.getElementById('c-ti').value.trim(),ro,st:document.getElementById('c-st').value,pr:document.getElementById('c-pr').value,li:document.getElementById('c-li').value.trim(),ac:document.getElementById('c-ac').value.trim(),no:document.getElementById('c-no').value.trim(),dt:today()});
+  addAct(`Added candidate: ${fn} ${ln}`,'#6ee7b7');save();closeModal('candidate');clearF('c-');renderCandidates();updateStats();updateSidebar();
+}
+
+// ═══ COMPANIES ════════════════════════════════════════════════════════════════
+function fComp(f,el){S.cof=f;document.querySelectorAll('#coFilters .filter-pill').forEach(p=>p.classList.remove('active'));el.classList.add('active');renderCompanies();}
+
+function renderCompanies(){
+  const q=(document.getElementById('coSearch')?.value||'').toLowerCase();
+  let list=S.companies;
+  if(S.cof!=='all')list=list.filter(c=>c.ti===S.cof);
+  if(q)list=list.filter(c=>c.nm.toLowerCase().includes(q)||c.fo.toLowerCase().includes(q));
+  const grid=document.getElementById('coGrid'),em=document.getElementById('coEmpty');
+  if(!grid)return;
+  if(list.length===0){grid.innerHTML='';grid.style.display='none';em.style.display='';return;}
+  grid.style.display='';em.style.display='none';
+  const tB={'1':'tier1','2':'tier2','3':'tier3','4':'tier4'};
+  const rL={all:'All Roles',lead:'Lead',voice:'Voice UX',hardware:'Hardware',platform:'Platform'};
+  const em2=['🏢','🤖','🎧','🔬','💡','⚡','🌐','🎯','👓','🐇','🎵','🔊','💍','🕶️','🌀','💬','🧠','🔍','📝','💌','✏️','▲','🦓','📡','🧩'];
+  grid.innerHTML=list.map((c,i)=>`
+    <div class="company-card" ${c.ur?`onclick="window.open('https://${c.ur}','_blank')"`:''}>
+      <div class="company-card-header">
+        <div><div class="company-name">${c.nm}</div>${c.ur?`<a class="company-url" href="https://${c.ur}" target="_blank" onclick="event.stopPropagation()">${c.ur}</a>`:'<span class="company-url" style="opacity:.4">no url</span>'}</div>
+        <div class="company-logo">${em2[i%em2.length]}</div>
+      </div>
+      <div class="company-focus">${c.fo||'No focus notes.'}</div>
+      <div class="company-meta"><span class="badge badge-${tB[c.ti]||'hold'}">Tier ${c.ti}</span><span class="role-tag ${c.ro}">${rL[c.ro]||c.ro}</span></div>
+      ${c.no?`<div style="margin-top:10px;font-size:11.5px;color:var(--text-muted);border-top:1px solid var(--border);padding-top:10px">${c.no}</div>`:''}
+    </div>`).join('');
+}
+
+function saveCompany(){
+  const nm=document.getElementById('co-nm').value.trim();if(!nm){alert('Company name required.');return;}
+  S.companies.push({id:uid(),nm,ur:document.getElementById('co-ur').value.trim().replace(/^https?:\/\//,''),ti:document.getElementById('co-ti').value,ro:document.getElementById('co-ro').value,fo:document.getElementById('co-fo').value.trim(),no:document.getElementById('co-no').value.trim(),dt:today()});
+  addAct(`Added target company: ${nm}`,'#818cf8');save();closeModal('company');clearF('co-');renderCompanies();updateSidebar();
+}
+
+// ═══ TASKS ════════════════════════════════════════════════════════════════════
+function renderTasks(){
+  const el=document.getElementById('todoList'),oh=document.getElementById('overviewHot');
+  if(!el)return;
+  if(S.tasks.length===0){el.innerHTML='<div class="empty-state" style="padding:28px 0"><div class="empty-state-icon">⚡</div><h3>No tasks</h3></div>';return;}
+  const tM={hot:'tag-hot',today:'tag-today',soon:'tag-soon',passive:'tag-passive'};
+  const tL={hot:'🔴 HOT',today:'TODAY',soon:'SOON',passive:'PASSIVE'};
+  el.innerHTML=S.tasks.map(t=>`<div class="todo-item"><div class="todo-check ${t.dn?'done':''}" onclick="toggleTask('${t.id}')">${t.dn?'✓':''}</div><div class="todo-text ${t.dn?'done-text':''}">${t.tx}</div><span class="todo-tag ${tM[t.pr]}">${tL[t.pr]}</span></div>`).join('');
+  const hot=S.tasks.filter(t=>t.pr==='hot'&&!t.dn);
+  if(oh){oh.innerHTML=hot.length===0?'<div style="padding:12px;font-size:13px;color:var(--text-muted)">No hot items. ✓ Good to go.</div>':hot.map(t=>`<div class="todo-item"><div class="todo-check" onclick="toggleTask('${t.id}')"></div><div class="todo-text">${t.tx}</div><span class="todo-tag tag-hot">🔴 HOT</span></div>`).join('');}
+  updateSidebar();
+}
+
+function toggleTask(id){const t=S.tasks.find(t=>t.id===id);if(t){t.dn=!t.dn;if(t.dn)addAct(`Completed: "${t.tx.slice(0,50)}"`,'#6ee7b7');save();renderTasks();updateSidebar();}}
+
+function saveTask(){
+  const tx=document.getElementById('t-tx').value.trim();if(!tx){alert('Task text required.');return;}
+  S.tasks.push({id:uid(),tx,pr:document.getElementById('t-pr').value,ca:document.getElementById('t-ca').value,dn:false,dt:today()});
+  addAct(`Added task: "${tx.slice(0,50)}"`,'#f59e0b');save();closeModal('task');document.getElementById('t-tx').value='';renderTasks();
+}
+
+function renderTrackLog(){
+  const el=document.getElementById('trackLog');if(!el)return;
+  if(S.activity.length===0){el.innerHTML='<div style="color:var(--text-muted);font-size:12px">Log populates as you work.</div>';return;}
+  el.innerHTML=S.activity.slice().reverse().slice(0,20).map(a=>`<div style="display:flex;gap:12px;padding:4px 0;border-bottom:1px solid var(--border)"><span style="color:${a.cl};flex-shrink:0">▸</span><span style="color:var(--text-dim);flex:1">${a.tx}</span><span style="color:var(--text-muted);font-size:10px;white-space:nowrap">${a.ti}</span></div>`).join('');
+}
+
+// ═══ NOTES ════════════════════════════════════════════════════════════════════
+function saveDump(){
+  const tx=document.getElementById('dumpText').value.trim();if(!tx)return;
+  S.notes.push({id:uid(),bo:tx,dt:today(),ti:nowt()});save();document.getElementById('dumpText').value='';renderNotes();
+}
+function renderNotes(){
+  const el=document.getElementById('savedNotes');if(!el)return;
+  if(S.notes.length===0){el.innerHTML='<div style="font-size:12px;color:var(--text-muted);padding:8px 2px">Saved brain dumps appear here.</div>';return;}
+  el.innerHTML=S.notes.slice().reverse().map(n=>`<div class="note-item"><div class="note-header"><span class="note-title">Brain Dump</span><span class="note-date">${n.dt} · ${n.ti}</span></div><div class="note-body">${n.bo}</div></div>`).join('');
+}
+
+// ═══ DOCS ═════════════════════════════════════════════════════════════════════
+function renderDocs(){
+  const grid=document.getElementById('docsGrid');if(!grid)return;
+  const iM={doc:'📄',template:'📋',email:'✉️',note:'📝',link:'🔗',intake:'📊'};
+  const lM={doc:'Document',template:'Template',email:'Outreach Draft',note:'Note',link:'Link / Reference',intake:'Intake / Prep'};
+  grid.innerHTML=S.docs.map(d=>`<div class="doc-card" ${d.ur?`onclick="window.open('https://${d.ur}','_blank')"`:''}>
+    <div class="doc-icon">${iM[d.ty]||'📄'}</div>
+    <div class="doc-title">${d.ti}</div>
+    <div style="font-size:12px;color:var(--text-muted);margin-top:4px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${d.bo||''}</div>
+    <span class="doc-tag">${lM[d.ty]||d.ty}</span>
+    <div style="font-size:11px;color:var(--text-muted);font-family:'DM Mono',monospace;margin-top:8px">${d.dt}</div>
+  </div>`).join('');
+}
+function saveDoc(){
+  const ti=document.getElementById('d-ti').value.trim();if(!ti){alert('Title required.');return;}
+  S.docs.push({id:uid(),ti,ty:document.getElementById('d-ty').value,ur:document.getElementById('d-ur').value.trim().replace(/^https?:\/\//,''),bo:document.getElementById('d-bo').value.trim(),dt:today()});
+  addAct(`Added doc: "${ti}"`,'#38bdf8');save();closeModal('doc');clearF('d-');renderDocs();
+}
+
+// ═══ ACTIVITY ═════════════════════════════════════════════════════════════════
+function addAct(tx,cl){S.activity.push({id:uid(),tx,cl,ti:nowt(),dt:today()});renderActivity();renderTrackLog();}
+function renderActivity(){
+  const feed=document.getElementById('activityFeed');if(!feed)return;
+  if(S.activity.length===0){feed.innerHTML='<div style="font-size:12px;color:var(--text-muted)">Activity appears here.</div>';return;}
+  feed.innerHTML=S.activity.slice().reverse().slice(0,8).map(a=>`<div class="timeline-event"><div class="timeline-dot" style="background:${a.cl}"></div><div class="timeline-content"><div class="timeline-text">${a.tx}</div><div class="timeline-time">${a.dt} · ${a.ti}</div></div></div>`).join('');
+}
+
+// ═══ STATS ════════════════════════════════════════════════════════════════════
+function updateStats(){
+  const ct={sourced:0,contacted:0,interviewing:0,offer:0};
+  S.candidates.forEach(c=>{if(ct[c.st]!==undefined)ct[c.st]++;});
+  document.getElementById('sS').textContent=ct.sourced;
+  document.getElementById('sCo').textContent=ct.contacted;
+  document.getElementById('sI').textContent=ct.interviewing;
+  document.getElementById('sO').textContent=ct.offer;
+  document.getElementById('sT').textContent=S.candidates.length;
+  const rc={lead:0,voice:0,hardware:0,platform:0};
+  S.candidates.forEach(c=>{if(rc[c.ro]!==undefined)rc[c.ro]++;});
+  const mx=Math.max(5,...Object.values(rc));
+  ['lead','voice','hardware','platform'].forEach(r=>{
+    const pe=document.getElementById('prog-'+r),be=document.getElementById('bar-'+r);
+    if(pe)pe.textContent=rc[r]+' candidate'+(rc[r]!==1?'s':'');
+    if(be)be.style.width=((rc[r]/mx)*100)+'%';
+  });
+}
+function updateSidebar(){
+  document.getElementById('navCC').textContent=S.candidates.length;
+  document.getElementById('navCO').textContent=S.companies.length;
+  const h=S.tasks.filter(t=>t.pr==='hot'&&!t.dn).length;
+  const he=document.getElementById('navHot');he.textContent=h;he.style.display=h>0?'':'none';
+}
+
+// ═══ MODALS ═══════════════════════════════════════════════════════════════════
+function openModal(t){document.getElementById('modal-'+t).classList.remove('hidden');}
+function closeModal(t){document.getElementById('modal-'+t).classList.add('hidden');}
+document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.add('hidden');}));
+function clearF(p){document.querySelectorAll(`[id^="${p}"]`).forEach(el=>{if(el.tagName==='SELECT')el.selectedIndex=0;else el.value='';});}
+
+// ═══ DATE ═════════════════════════════════════════════════════════════════════
+function updateDate(){const el=document.getElementById('topbarDate');if(el)el.textContent=new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});}
+
+// ═══ REFRESH ══════════════════════════════════════════════════════════════════
+function refreshAll(){renderCandidates();renderCompanies();renderTasks();renderNotes();renderDocs();renderActivity();updateStats();updateSidebar();renderTrackLog();}
+
+// ═══ INIT ═════════════════════════════════════════════════════════════════════
+loadState();updateDate();refreshAll();setInterval(updateDate,60000);
+</script>
+</body>
+</html>
